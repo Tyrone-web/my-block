@@ -11,7 +11,7 @@ const Navbar: NextPage = () => {
       <section className={styles.logoArea}>BLOG-C</section>
       <section className={styles.linkArea}>
         {navConfig.map((nav) => (
-          <Link key={nav.value} href={nav.value}>
+          <Link key={nav.value} href={nav.value} legacyBehavior>
             <a className={nav.value === pathname ? styles.active : ""}>
               {nav.label}
             </a>
