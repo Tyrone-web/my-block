@@ -1,5 +1,7 @@
+import { useState, useCallback } from "react";
 import styles from "./index.module.scss";
-import { Form, Input, Button, Modal, Space } from "antd";
+import { Form, Input, Button, Modal } from "antd";
+import CountDown from "../CountDown";
 
 interface IProps {
   isShow: boolean;
@@ -7,8 +9,9 @@ interface IProps {
 }
 const Login = (props: IProps) => {
   const { isShow, onClose } = props;
+  const [isShowVerifyCount, setIsShowVerifyCount] = useState(false);
 
-  const handleGetVerifyCode = () => {};
+  const handleGetVerifyCode = () => setIsShowVerifyCount(true);
 
   const handleLogin = () => {};
 
@@ -17,6 +20,8 @@ const Login = (props: IProps) => {
   const onFinish = (value) => {
     console.log("value", value);
   };
+
+  const handleOnEnd = useCallback(() => setIsShowVerifyCount(false), []);
 
   return (
     <Modal
@@ -39,7 +44,11 @@ const Login = (props: IProps) => {
                 className={styles.verifyCodeBtn}
                 onClick={handleGetVerifyCode}
               >
-                获取验证码
+                {isShowVerifyCount ? (
+                  <CountDown time={10} onEnd={handleOnEnd} />
+                ) : (
+                  <span>获取验证码</span>
+                )}
               </div>
             }
           />
@@ -55,7 +64,7 @@ const Login = (props: IProps) => {
           </Button>
         </Form.Item>
         <Form.Item>
-          <Button style={{ width: "100%" }} onClick={handleOAuthGithub}>
+          <Button className={styles.fullWidth} onClick={handleOAuthGithub}>
             使用 Github 登录
           </Button>
         </Form.Item>
