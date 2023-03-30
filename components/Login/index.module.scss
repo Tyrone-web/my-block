@@ -1,0 +1,29 @@
+.title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: '#252933';
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.fullWidth {
+    width: 100%;
+}
+
+.ant-input-group-addon {
+    display: flex;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.verifyCodeBtn {
+    color: #1e80ff;
+    cursor: pointer;
+}
+
+.privacy {
+    text-align: center;
+}
