@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "antd";
 import type { NextPage } from "next";
 import Link from "next/link";
@@ -12,7 +12,7 @@ const Navbar: NextPage = () => {
   const [isShowLogin, setIsShowLogin] = useState(false);
   const handleGotoEditorPage = () => {};
   const handleLogin = () => setIsShowLogin(true);
-  const handleClose = () => setIsShowLogin(false);
+  const handleClose = useCallback(() => setIsShowLogin(false), []);
 
   return (
     <div className={styles.navbar}>
