@@ -1,17 +1,48 @@
 import { useState, useCallback } from "react";
 import styles from "./index.module.scss";
-import { Form, Input, Button, Modal } from "antd";
+import { Form, Input, Button, Modal, message } from "antd";
 import CountDown from "../CountDown";
+import request from "service/fetch";
 
 interface IProps {
   isShow: boolean;
   onClose: () => void;
 }
+
+const { useForm } = Form;
+
 const Login = (props: IProps) => {
   const { isShow, onClose } = props;
   const [isShowVerifyCount, setIsShowVerifyCount] = useState(false);
+  const [form] = useForm();
+  const { getFieldValue } = form;
 
-  const handleGetVerifyCode = () => setIsShowVerifyCount(true);
+  const handleGetVerifyCode = () => {
+    const phone = getFieldValue("phone");
+    console.log("phone", phone);
+
+    if (!phone) {
+      message.warning("请输入手机号");
+      return;
+    }
+
+    // next.js会拦截该请求（api开头）
+    request
+      .post("/api/user/sendVerifyCode", {
+        to: phone,
+        templateId: 1,
+      })
+      .then((res) => {
+        console.log(res, "res");
+        const { code, msg } = res as any; // any待优化
+        if (code === 0) {
+          setIsShowVerifyCount(true);
+
+          return;
+        }
+        message.error(msg || "未知错误");
+      });
+  };
 
   const handleLogin = () => {};
 
@@ -33,7 +64,7 @@ const Login = (props: IProps) => {
       width={350}
       maskClosable={false}
     >
-      <Form name="login" onFinish={onFinish}>
+      <Form name="login" onFinish={onFinish} form={form}>
         <Form.Item name="phone">
           <Input addonBefore="+86" />
         </Form.Item>
