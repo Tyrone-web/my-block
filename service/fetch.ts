@@ -7,7 +7,7 @@ const requestInstance = axios.create({
 requestInstance.interceptors.request.use(config => config, error => Promise.reject(error));
 
 requestInstance.interceptors.response.use(response => {
-    if (response?.data === 200) {
+    if (response?.status === 200) {
         return response?.data;
     }
 

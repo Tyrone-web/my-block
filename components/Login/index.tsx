@@ -48,7 +48,7 @@ const Login = (props: IProps) => {
 
   const handleOAuthGithub = () => {};
 
-  const onFinish = (value) => {
+  const onFinish = (value: Record<string, any>) => {
     console.log("value", value);
   };
 
