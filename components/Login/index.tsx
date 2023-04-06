@@ -9,6 +9,11 @@ interface IProps {
   onClose: () => void;
 }
 
+export interface ILogin {
+    phone: string;
+    verifyCode: string;
+}
+
 const { useForm } = Form;
 
 const Login = (props: IProps) => {
@@ -19,7 +24,6 @@ const Login = (props: IProps) => {
 
   const handleGetVerifyCode = () => {
     const phone = getFieldValue("phone");
-    console.log("phone", phone);
 
     if (!phone) {
       message.warning("请输入手机号");
@@ -44,12 +48,20 @@ const Login = (props: IProps) => {
       });
   };
 
-  const handleLogin = () => {};
-
   const handleOAuthGithub = () => {};
 
-  const onFinish = (value: Record<string, any>) => {
-    console.log("value", value);
+  const onFinish = (values: Record<string, any>) => {
+    request.post('/api/user/login', {
+        ...values
+    }).then((res: Record<string, any>) => {
+        if (res.code === 0) {
+            onClose();
+
+            return;
+        }
+
+        message.error(res.msg || '未知错误');
+    });
   };
 
   const handleOnEnd = useCallback(() => setIsShowVerifyCount(false), []);
@@ -87,7 +99,7 @@ const Login = (props: IProps) => {
         <Form.Item>
           <Button
             className={styles.fullWidth}
-            onClick={handleLogin}
+            // onClick={handleLogin}
             type="primary"
             htmlType="submit"
           >
