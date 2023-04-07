@@ -52,7 +52,8 @@ const Login = (props: IProps) => {
 
   const onFinish = (values: Record<string, any>) => {
     request.post('/api/user/login', {
-        ...values
+      ...values,
+      identity_type: 'phone'
     }).then((res: Record<string, any>) => {
         if (res.code === 0) {
             onClose();
@@ -80,7 +81,7 @@ const Login = (props: IProps) => {
         <Form.Item name="phone">
           <Input addonBefore="+86" />
         </Form.Item>
-        <Form.Item name="verify">
+        <Form.Item name="verifyCode">
           <Input
             addonAfter={
               <div

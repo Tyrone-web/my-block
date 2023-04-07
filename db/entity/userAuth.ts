@@ -17,9 +17,6 @@ export class UserAuth extends BaseEntity {
     @Column()
     credential!: string;
 
-    @Column()
-    job!: string;
-
     @ManyToOne(() => User, {
         cascade: true
     })

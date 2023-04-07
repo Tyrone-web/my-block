@@ -14,21 +14,22 @@ const BASE_URL = 'https://app.cloopen.com:8883';
 const APP_ID = '8aaf070870e20ea10171161fad2d1d9a';
 const EXPIRE_MINUTE = '5';
 
-const verifyCode = async function (req: NextApiRequest & ISession, res: NextApiResponse) {
+const verifyCode = async function (req: NextApiRequest, res: NextApiResponse) {
     const session: ISession = req.session;
     const { to, templateId } = req.body;
     const nowDate = format(new Date(), 'yyyyMMddHHmmss');
     const sigParameter = md5(`${ACCOUNT_ID}${AUTH_TOKEN}${nowDate}`);
     const authorization = encode(`${ACCOUNT_ID}:${nowDate}`);
     const url = `${BASE_URL}/2013-12-26/Accounts/${ACCOUNT_ID}/SMS/TemplateSMS?sig=${sigParameter}`;
-    const verifyCode = Math.floor(Math.random() * (9999 - 1000)) + 1000;
-    const body = {
+    // const verifyCode = String(Math.floor(Math.random() * (9999 - 1000)) + 1000);
+    const verifyCode = '0000' // 目前容联云通信的测试模板的内容都是固定的，验证码0000，因此这里的验证码固定写入0000
+
+    const response = await request.post(url, {
         to,
         appId: APP_ID,
         templateId,
         datas: [verifyCode, EXPIRE_MINUTE]
-    }
-    const response = await request.post(url, body, {
+    }, {
         headers: {
             Authorization: authorization,
         }
