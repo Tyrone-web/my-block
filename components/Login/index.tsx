@@ -37,7 +37,6 @@ const Login = (props: IProps) => {
         templateId: 1,
       })
       .then((res) => {
-        console.log(res, "res");
         const { code, msg } = res as any; // any待优化
         if (code === 0) {
           setIsShowVerifyCount(true);
@@ -56,9 +55,10 @@ const Login = (props: IProps) => {
       identity_type: 'phone'
     }).then((res: Record<string, any>) => {
         if (res.code === 0) {
-            onClose();
+          message.success(res.msg); // 登录成功
+          onClose();
 
-            return;
+          return;
         }
 
         message.error(res.msg || '未知错误');

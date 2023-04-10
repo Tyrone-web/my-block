@@ -6,6 +6,12 @@ import { ISession } from '..';
 import { prepareConnection } from 'db/index';
 import { User, UserAuth } from 'db/entity';
 
+const getLoginResult = (res: any, message: string, code = 0) => {
+    return res.status(200).json({
+        code,
+        msg: message
+    });
+}
 
 const login = async function (req: NextApiRequest, res: NextApiResponse) {
     const session: ISession = req.session;
@@ -18,52 +24,62 @@ const login = async function (req: NextApiRequest, res: NextApiResponse) {
 
     const users = await userRepo.find();
 
-    // if (session.verifyCode === verifyCode) {
     if ('0000' === String(verifyCode)) {
-        console.log(verifyCode, 'verifyCode');
+        // 验证码正确，查找数据库user_auths表中的identity_type是否有记录
+        const userAuth = await userAuthRepo.findOne({
+            where: {
+                identity_type: identityType,
+                identityfiler: phone
+            },
+            relations: ['user']
+        });
+        // const hasUserAuth = userAuths.find(item => item.identity_type === identityType && item.identityfiler === phone)
+        // 已存在的用户
+        if (userAuth) {
+            const user = userAuth?.user;
+            const { id, nickname, avatar } = user;
 
-        // 验证码正确，查找user_auths表中的identity_type是否有记录
-        // const userAuths = await userAuthRepo.findOne({
-        //     // select: {
-        //     //     identity_type: identityType,
-        //     //     identityfiler: phone
-        //     // },
-        //     relations: ['user']
-        // })
-        const userAuths = await userAuthRepo.find();
-        const hasUserAuth = userAuths.find(item => item.identity_type === identityType && item.identityfiler === phone)
+            // 保存当前用户信息到session中
+            session.id = id;
+            session.nickname = nickname;
+            session.avatar = avatar;
 
-        if (hasUserAuth) {
-            // 已存在的用户
-            console.log(hasUserAuth, '11111');
-        } else {
-            // 注册新用户
-            const user = new User();
-            user.nickname = `user_${Math.floor(Math.random() * 10000)}`;
-            user.avatar = '/images/avatar.jpg';
-            user.job = '暂无';
-            user.introduce = '暂无';
+            await session.save();
 
-            const userAuth = new UserAuth();
-            userAuth.identity_type = identityType;
-            userAuth.identityfiler = phone;
-            userAuth.credential = session.verifyCode || '0000';
-            userAuth.user = user;
-
-            const resUserAuth = await userAuthRepo.save(userAuth);
-
-            console.log(resUserAuth, '2222');
+            return getLoginResult(res, '登录成功');
         }
 
-        return res.status(200).json({
-            code: 0,
-        });
+        // 数据库中不存在该用户则直接注册新用户 
+        const user = new User();
+        user.nickname = `user_${Math.floor(Math.random() * 10000)}`;
+        user.avatar = '/images/avatar.jpg';
+        user.job = '暂无';
+        user.introduce = '暂无';
+
+        // 新建一个userAuth
+        const newUserAuth = new UserAuth();
+        newUserAuth.identity_type = identityType;
+        newUserAuth.identityfiler = phone;
+        newUserAuth.credential = session.verifyCode || '0000';
+        newUserAuth.user = user;
+
+        // 将新的用户信息写入数据库中
+        await userAuthRepo.save(newUserAuth);
+
+        // 将当前的信息保存到session中
+        const { id, nickname, avatar } = user;
+
+        session.id = id;
+        session.nickname = nickname;
+        session.avatar = avatar;
+
+        await session.save();
+
+        return getLoginResult(res, '注册成功');
     }
 
-    return res.status(200).json({
-        code: -1,
-        msg: '验证码错误'
-    });
+    // 验证码错误
+    return getLoginResult(res, '验证码错误', -1);
 };
 
 export default withIronSessionApiRoute(login, ironOptions);
