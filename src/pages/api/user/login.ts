@@ -1,15 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { withIronSessionApiRoute } from "iron-session/next";
-import request from 'service/fetch';
+import { Cookie } from 'next-cookie';
 import { ironOptions } from 'config/index';
 import { ISession } from '..';
 import { prepareConnection } from 'db/index';
 import { User, UserAuth } from 'db/entity';
+import { setCookie } from 'utils/index';
 
-const getLoginResult = (res: any, message: string, code = 0) => {
+const getLoginResult = (res: any, message: string, data: any, code = 0) => {
     return res.status(200).json({
         code,
-        msg: message
+        msg: message,
+        data
     });
 }
 
@@ -17,12 +19,9 @@ const login = async function (req: NextApiRequest, res: NextApiResponse) {
     const session: ISession = req.session;
     const { phone, verifyCode, identity_type: identityType } = req.body;
 
+    const cookies = Cookie.fromApiRoute(req, res);
     const db = await prepareConnection();
-
-    const userRepo = db.getRepository(User);
     const userAuthRepo = db.getRepository(UserAuth)
-
-    const users = await userRepo.find();
 
     if ('0000' === String(verifyCode)) {
         // 验证码正确，查找数据库user_auths表中的identity_type是否有记录
@@ -33,7 +32,6 @@ const login = async function (req: NextApiRequest, res: NextApiResponse) {
             },
             relations: ['user']
         });
-        // const hasUserAuth = userAuths.find(item => item.identity_type === identityType && item.identityfiler === phone)
         // 已存在的用户
         if (userAuth) {
             const user = userAuth?.user;
@@ -45,8 +43,10 @@ const login = async function (req: NextApiRequest, res: NextApiResponse) {
             session.avatar = avatar;
 
             await session.save();
+            // 保存当前用户信息到cookie中
+            setCookie(cookies, user);
 
-            return getLoginResult(res, '登录成功');
+            return getLoginResult(res, '登录成功', { userId: id, nickname, avatar });
         }
 
         // 数据库中不存在该用户则直接注册新用户 
@@ -75,11 +75,14 @@ const login = async function (req: NextApiRequest, res: NextApiResponse) {
 
         await session.save();
 
-        return getLoginResult(res, '注册成功');
+        // 保存当前用户信息到cookie中
+        setCookie(cookies, user);
+
+        return getLoginResult(res, '注册成功', { userId: id, nickname, avatar });
     }
 
     // 验证码错误
-    return getLoginResult(res, '验证码错误', -1);
+    return getLoginResult(res, '验证码错误', {}, -1);
 };
 
 export default withIronSessionApiRoute(login, ironOptions);

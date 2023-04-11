@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
 import styles from "./index.module.scss";
+import { observer } from 'mobx-react-lite';
 import { Form, Input, Button, Modal, message } from "antd";
 import CountDown from "../CountDown";
 import request from "service/fetch";
+import { useStore } from 'store/index'
 
 interface IProps {
   isShow: boolean;
@@ -17,6 +19,7 @@ export interface ILogin {
 const { useForm } = Form;
 
 const Login = (props: IProps) => {
+  const store = useStore();
   const { isShow, onClose } = props;
   const [isShowVerifyCount, setIsShowVerifyCount] = useState(false);
   const [form] = useForm();
@@ -55,7 +58,8 @@ const Login = (props: IProps) => {
       identity_type: 'phone'
     }).then((res: Record<string, any>) => {
         if (res.code === 0) {
-          message.success(res.msg); // 登录成功
+          // message.success(res.msg); // 登录成功
+          store.user.setUserInfo(res?.data || {});
           onClose();
 
           return;
@@ -123,4 +127,4 @@ const Login = (props: IProps) => {
   );
 };
 
-export default Login;
+export default observer(Login);

@@ -1,18 +1,44 @@
 import { useState, useCallback } from "react";
-import { Button } from "antd";
+import { observer } from "mobx-react-lite";
+import { Avatar, Button, Dropdown, MenuProps } from "antd";
+// import { LoginOutlined, HomeOutlined } from "@ant-design/icons";
 import type { NextPage } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import request from "service/fetch";
 import navConfig from "./config";
 import styles from "./index.module.scss";
+import { useStore } from "store/index";
 import Login from "../Login";
 
 const Navbar: NextPage = () => {
+  const store = useStore();
+  const { userId, avatar, nickname } = store.user.userInfo;
+
   const { pathname } = useRouter();
   const [isShowLogin, setIsShowLogin] = useState(false);
   const handleGotoEditorPage = () => {};
   const handleLogin = () => setIsShowLogin(true);
   const handleClose = useCallback(() => setIsShowLogin(false), []);
+
+  const handleLogout = () => {
+    request.post("/api/user/logout").then((res: any) => {
+      if (res.code === 0) {
+        store.user.setUserInfo({});
+      }
+    });
+  };
+
+  const items: MenuProps["items"] = [
+    {
+      key: "1",
+      label: <span>个人主页</span>,
+    },
+    {
+      key: "2",
+      label: <span onClick={handleLogout}>退出系统</span>,
+    },
+  ];
 
   return (
     <div className={styles.navbar}>
@@ -28,13 +54,21 @@ const Navbar: NextPage = () => {
       </section>
       <section className={styles.operationArea}>
         <Button onClick={handleGotoEditorPage}>写文章</Button>
-        <Button type="primary" onClick={handleLogin}>
-          登录
-        </Button>
+        {userId ? (
+          <Dropdown menu={{ items }} placement="bottomLeft">
+            <span>
+              <Avatar src={avatar} size={32} /> {nickname}
+            </span>
+          </Dropdown>
+        ) : (
+          <Button type="primary" onClick={handleLogin}>
+            登录
+          </Button>
+        )}
         <Login isShow={isShowLogin} onClose={handleClose} />
       </section>
     </div>
   );
 };
 
-export default Navbar;
+export default observer(Navbar);
