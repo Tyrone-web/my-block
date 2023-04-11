@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { observer } from "mobx-react-lite";
-import { Avatar, Button, Dropdown, MenuProps } from "antd";
+import { Avatar, Button, Dropdown, MenuProps, message } from "antd";
 // import { LoginOutlined, HomeOutlined } from "@ant-design/icons";
 import type { NextPage } from "next";
 import Link from "next/link";
@@ -15,9 +15,18 @@ const Navbar: NextPage = () => {
   const store = useStore();
   const { userId, avatar, nickname } = store.user.userInfo;
 
-  const { pathname } = useRouter();
+  const { pathname, push } = useRouter();
   const [isShowLogin, setIsShowLogin] = useState(false);
-  const handleGotoEditorPage = () => {};
+  const handleGotoEditorPage = () => {
+    if (userId) {
+      push("/editor/new");
+    } else {
+      message.warning("请先登录");
+    }
+  };
+  const handleGoToPersonalPage = () => {
+    push(`/user/${userId}`);
+  };
   const handleLogin = () => setIsShowLogin(true);
   const handleClose = useCallback(() => setIsShowLogin(false), []);
 
@@ -32,7 +41,7 @@ const Navbar: NextPage = () => {
   const items: MenuProps["items"] = [
     {
       key: "1",
-      label: <span>个人主页</span>,
+      label: <span onClick={handleGoToPersonalPage}>个人主页</span>,
     },
     {
       key: "2",

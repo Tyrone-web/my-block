@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 import Layout from "@/PublicComponents/Layout";
 import { StoreProvider } from "store/index";
 import { NextPage } from "next";
+import { render } from "react-dom";
 
 interface IProps {
   initialValue: Record<string, any>;
@@ -10,12 +11,19 @@ interface IProps {
 }
 
 function App({ initialValue, Component, pageProps }: IProps) {
-  return (
-    <StoreProvider initialValue={initialValue}>
+  const renderLayout = () => {
+    if ((Component as any).layout === null) {
+      return <Component {...pageProps} />;
+    }
+
+    return (
       <Layout>
         <Component {...pageProps} />
       </Layout>
-    </StoreProvider>
+    );
+  };
+  return (
+    <StoreProvider initialValue={initialValue}>{renderLayout()}</StoreProvider>
   );
 }
 
